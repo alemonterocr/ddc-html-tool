@@ -7,6 +7,8 @@ on:
 jobs:
   build-windows:
     runs-on: windows-latest
+    permissions:
+      contents: write
 
     steps:
       - uses: actions/checkout@v3
@@ -24,25 +26,11 @@ jobs:
       - name: Build executable
         run: |
           pyinstaller html-cleaner.spec
-          Compress-Archive -Path "dist\html-cleaner" -DestinationPath "html-cleaner-win64.zip"
+          powershell -Command "Compress-Archive -Path 'dist\html-cleaner' -DestinationPath 'html-cleaner-win64.zip' -Force"
         shell: powershell
 
-      - name: Upload to Release
-        uses: actions/upload-release-asset@v1
+      - name: Upload artifacts to release
+        run: |
+          gh release upload ${{ github.event.release.tag_name }} dist/html-cleaner/html-cleaner.exe html-cleaner-win64.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ./html-cleaner-win64.zip
-          asset_name: html-cleaner-win64.zip
-          asset_content_type: application/zip
-
-      - name: Upload executable
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ./dist/html-cleaner/html-cleaner.exe
-          asset_name: html-cleaner.exe
-          asset_content_type: application/octet-stream
