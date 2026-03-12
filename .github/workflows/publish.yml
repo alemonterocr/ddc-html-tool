@@ -54,5 +54,6 @@ jobs:
           gh release create ${{ github.ref_name }} --generate-notes 2>/dev/null || true
           # Upload artifacts to release
           gh release upload ${{ github.ref_name }} dist/html-cleaner/html-cleaner.exe html-cleaner-win64.zip --clobber
+        shell: bash
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
