@@ -2,7 +2,12 @@
 """Test garbage cleaner space preservation"""
 
 import sys
-sys.path.insert(0, '.')
+from pathlib import Path
+
+# Add modules directory to path (works on local machine and GitHub Actions)
+modules_dir = Path(__file__).parent.parent / 'modules'
+sys.path.insert(0, str(modules_dir))
+
 from garbage_cleaner import clean_html
 
 # Test 1: Spaces between inline elements
