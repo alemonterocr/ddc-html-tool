@@ -1,0 +1,6 @@
+include docs/README.md
+include docs/QUICKSTART.md
+include .instructions.md
+include .gitignore
+include pyproject.toml
+recursive-include modules *.py

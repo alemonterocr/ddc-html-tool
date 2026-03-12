@@ -1,0 +1,44 @@
+[build-system]
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "html-cleaning-toolkit"
+version = "1.0.0"
+description = "Professional HTML cleaning utility with three specialized tools"
+readme = "docs/README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [
+    {name = "Your Name", email = "your.email@example.com"}
+]
+keywords = ["html", "cleaning", "parsing", "utility", "tools"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Text Processing :: Markup :: HTML",
+]
+dependencies = [
+    "rich>=14.3.0",
+    "beautifulsoup4>=4.12.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/alemonterocr/html-cleaning-toolkit"
+Documentation = "https://github.com/alemonterocr/html-cleaning-toolkit#readme"
+Repository = "https://github.com/alemonterocr/html-cleaning-toolkit.git"
+Issues = "https://github.com/alemonterocr/html-cleaning-toolkit/issues"
+
+[project.scripts]
+html-cleaner = "main:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["modules"]
