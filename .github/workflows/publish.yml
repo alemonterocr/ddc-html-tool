@@ -1,8 +1,9 @@
 name: Build Executables
 
 on:
-  release:
-    types: [created]
+  push:
+    tags:
+      - "v*"
 
 jobs:
   build-windows:
@@ -48,6 +49,10 @@ jobs:
         shell: powershell
 
       - name: Upload artifacts to release
-        run: gh release upload ${{ github.event.release.tag_name }} dist/html-cleaner/html-cleaner.exe html-cleaner-win64.zip
+        run: |
+          # Create release from tag if it doesn't exist
+          gh release create ${{ github.ref_name }} --generate-notes 2>/dev/null || true
+          # Upload artifacts to release
+          gh release upload ${{ github.ref_name }} dist/html-cleaner/html-cleaner.exe html-cleaner-win64.zip --clobber
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
