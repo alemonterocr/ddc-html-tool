@@ -7,8 +7,8 @@ Thank you for your interest in contributing! Here's how to help:
 1. **Clone the repository**
 
    ```bash
-   git clone https://github.com/alemonterocr/html-cleaning-toolkit.git
-   cd html-cleaning-toolkit
+   git clone https://github.com/alemonterocr/ddc-html-tool.git
+   cd ddc-html-tool
    ```
 
 2. **Create a virtual environment**

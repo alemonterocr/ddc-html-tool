@@ -4,7 +4,7 @@
 
 ### Option 1: Download Standalone Executable
 
-1. Go to [Releases](https://github.com/alemonterocr/html-cleaning-toolkit/releases)
+1. Go to [Releases](https://github.com/alemonterocr/ddc-html-tool/releases)
 2. Download `html-cleaner.exe` or `html-cleaner-win64.zip`
 3. Run `html-cleaner.exe` directly (no installation needed!)
 
@@ -13,8 +13,8 @@
 ### Option 2: Install from GitHub (For Developers)
 
 ```bash
-git clone https://github.com/alemonterocr/html-cleaning-toolkit
-cd html-cleaning-toolkit
+git clone https://github.com/alemonterocr/ddc-html-tool
+cd ddc-html-tool
 python -m venv .venv
 .venv\Scripts\activate  # Windows
 pip install -e .
@@ -26,7 +26,7 @@ python main.py
 If you have Python 3.10+ installed:
 
 ```bash
-pip install html-cleaning-toolkit
+pip install ddc-html-tool
 html-cleaner
 ```
 
@@ -126,7 +126,7 @@ New Href: /page.html
 The package didn't install properly. Try:
 
 ```bash
-pip install --upgrade html-cleaning-toolkit
+pip install --upgrade ddc-html-tool
 ```
 
 ### Clipboard issues (Windows)
@@ -174,8 +174,8 @@ html-cleaner --input input.html --output output.html --mode garbage
 For contributing or extending:
 
 ```bash
-git clone https://github.com/alemonterocr/html-cleaning-toolkit
-cd html-cleaning-toolkit
+git clone https://github.com/alemonterocr/ddc-html-tool
+cd ddc-html-tool
 python -m venv .venv
 .venv\Scripts\activate  # Windows
 pip install -e ".[dev]"

@@ -154,7 +154,7 @@ def show_release_checklist():
        - Attach html-cleaner.exe and .zip to release page
        
     Team members can then download from:
-    github.com/alemonterocr/html-cleaning-toolkit/releases
+    github.com/alemonterocr/ddc-html-tool/releases
     """)
 
 

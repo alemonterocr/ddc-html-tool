@@ -1,6 +1,6 @@
 # -*- mode: python ; coding: utf-8 -*-
 """
-PyInstaller spec file for building html-cleaning-toolkit executable
+PyInstaller spec file for building ddc-html-tool executable
 Run with: pyinstaller html-cleaner.spec
 """
 

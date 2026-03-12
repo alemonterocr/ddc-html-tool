@@ -3,7 +3,7 @@ requires = ["setuptools>=45", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "html-cleaning-toolkit"
+name = "ddc-html-tool"
 version = "1.0.0"
 description = "Professional HTML cleaning utility with three specialized tools"
 readme = "docs/README.md"
@@ -31,10 +31,10 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/alemonterocr/html-cleaning-toolkit"
-Documentation = "https://github.com/alemonterocr/html-cleaning-toolkit#readme"
-Repository = "https://github.com/alemonterocr/html-cleaning-toolkit.git"
-Issues = "https://github.com/alemonterocr/html-cleaning-toolkit/issues"
+Homepage = "https://github.com/alemonterocr/ddc-html-tool"
+Documentation = "https://github.com/alemonterocr/ddc-html-tool#readme"
+Repository = "https://github.com/alemonterocr/ddc-html-tool.git"
+Issues = "https://github.com/alemonterocr/ddc-html-tool/issues"
 
 [project.scripts]
 html-cleaner = "main:main"
