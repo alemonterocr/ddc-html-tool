@@ -1,0 +1,6 @@
+<div id="test" data-attr="bad" class="container">
+    <script>alert("garbage")</script>
+    <p onclick="track()" style="color: red;" class="text">Some content   here</p>
+    <a href="page.html" id="link1" onclick="event()" class="link">Click me</a>
+</div>
+

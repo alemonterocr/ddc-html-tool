@@ -1,16 +1,16 @@
-#!/usr/bin/env python3
 """
-HTML Body Cleaner Utility - Interactive Clipboard Monitor
-Monitors clipboard for HTML content, cleans it automatically, and returns result to clipboard.
-Uses 'rich' for hacker-style CLI aesthetics.
+HTML Garbage Cleaner Module
+Removes script/style tags, redundant whitespace, and unnecessary HTML attributes.
+Preserves 'href' on <a> tags and 'class' on all tags.
 """
 
 import sys
 import re
-import subprocess
 from html.parser import HTMLParser
+from html.entities import name2codepoint, codepoint2name
 from io import StringIO
 from dataclasses import dataclass
+import html
 
 from rich.console import Console
 from rich.panel import Panel
@@ -26,6 +26,7 @@ class CleaningResult:
     cleaned_size: int
     script_style_removed: int
     attributes_removed: int
+    entities_removed: int
     
     @property
     def size_reduction(self) -> int:
@@ -42,12 +43,13 @@ class HTMLCleaner(HTMLParser):
     """Pure HTML parser and cleaner. Single Responsibility: clean HTML only."""
     
     def __init__(self):
-        super().__init__()
+        super().__init__(convert_charrefs=False)  # Don't auto-convert entities
         self.output = StringIO()
         self.skip_content = False
         self.current_tag = None
         self.script_style_removed = 0
         self.attributes_removed = 0
+        self.entities_removed = 0  # Will be set in get_result()
     
     def handle_starttag(self, tag, attrs):
         """Handle opening tags, filtering attributes based on tag type."""
@@ -105,31 +107,63 @@ class HTMLCleaner(HTMLParser):
         self.current_tag = None
     
     def handle_data(self, data):
-        """Handle text content, collapsing redundant whitespace."""
+        """Handle text content, preserving original spacing."""
         if not self.skip_content:
-            lines = data.split('\n')
-            lines = [line.strip() for line in lines]
-            lines = [line for line in lines if line]
-            
-            if lines:
-                self.output.write(' '.join(lines))
+            self.output.write(data)
     
     def handle_entityref(self, name):
-        """Handle HTML entities."""
+        """Handle HTML entities by reconstructing them."""
         if not self.skip_content:
-            self.output.write(f'&{name};')
+            # Preserve entities (nbsp will be removed in get_result)
+            if name in name2codepoint:
+                self.output.write(f'&{name};')
+            else:
+                self.output.write(f'&{name};')
     
     def handle_charref(self, name):
-        """Handle character references."""
+        """Handle character references (numeric entities like &#160;)."""
         if not self.skip_content:
-            self.output.write(f'&#{name};')
+            # Reconstruct the character reference properly
+            try:
+                # Handle both decimal and hex references
+                if name.startswith('x') or name.startswith('X'):
+                    code = int(name[1:], 16)
+                else:
+                    code = int(name)
+                # Write the character reference to preserve the entity format
+                self.output.write(f'&#{name};')
+            except ValueError:
+                # Fallback - shouldn't happen with valid HTML
+                self.output.write(f'&#{name};')
     
     def get_result(self) -> str:
-        """Return cleaned HTML."""
+        """Return cleaned HTML with proper entity encoding and &nbsp; removal."""
         result = self.output.getvalue()
-        # Final whitespace consolidation
-        result = re.sub(r'\s+', ' ', result)
-        return result.strip()
+        
+        # Count and remove &nbsp; entities (before conversion)
+        nbsp_count = result.count('&nbsp;')
+        self.entities_removed = nbsp_count
+        result = result.replace('&nbsp;', '')
+        
+        # Remove the non-breaking space character (U+00A0) that HTMLParser converts from &nbsp;
+        nbsp_char = '\xa0'  # Non-breaking space
+        result = result.replace(nbsp_char, '')
+        
+        # Ensure proper handling of special characters and entities
+        # Map common Unicode characters to their HTML entity equivalents
+        entity_map = {
+            '\u2013': '&ndash;',  # En dash
+            '\u2014': '&mdash;',  # Em dash
+            '\u2019': '&rsquo;',  # Right single quotation
+            '\u201c': '&ldquo;',  # Left double quotation
+            '\u201d': '&rdquo;',  # Right double quotation
+        }
+        
+        # Replace special characters with proper HTML entities
+        for char, entity in entity_map.items():
+            result = result.replace(char, entity)
+        
+        return result
 
 
 def clean_html(html_content: str) -> CleaningResult:
@@ -159,72 +193,9 @@ def clean_html(html_content: str) -> CleaningResult:
         original_size=original_size,
         cleaned_size=len(cleaned_html),
         script_style_removed=cleaner.script_style_removed,
-        attributes_removed=cleaner.attributes_removed
+        attributes_removed=cleaner.attributes_removed,
+        entities_removed=cleaner.entities_removed
     )
-
-
-def get_clipboard() -> str:
-    """Get text from Windows clipboard using PowerShell."""
-    try:
-        result = subprocess.run(
-            ['powershell', '-Command', 'Get-Clipboard'],
-            capture_output=True,
-            text=True,
-            timeout=5
-        )
-        if result.returncode == 0:
-            return result.stdout
-        return ""
-    except Exception:
-        return ""
-
-
-def set_clipboard(text: str) -> bool:
-    """Set text to Windows clipboard using clip command."""
-    try:
-        process = subprocess.Popen(
-            ['clip'],
-            stdin=subprocess.PIPE,
-            stderr=subprocess.PIPE
-        )
-        process.communicate(text.encode('utf-8'), timeout=5)
-        return process.returncode == 0
-    except Exception:
-        return False
-
-
-def read_html_from_user() -> str:
-    """Read multi-line HTML input from user.
-    
-    Prompts user to paste HTML and reads until:
-    - They press Enter twice (blank line after content), OR
-    - EOF is reached
-    Returns the collected HTML content.
-    """
-    console = Console()
-    console.print("[green bold]→ Paste your HTML (press Enter twice when done):[/green bold]")
-    
-    lines = []
-    blank_line_count = 0
-    
-    try:
-        for line in sys.stdin:
-            # Remove newline character but preserve the line content
-            line = line.rstrip('\n\r')
-            
-            if line.strip() == "":
-                blank_line_count += 1
-                # Only stop if we have content AND we see a blank line
-                if lines and blank_line_count >= 1:
-                    break
-            else:
-                blank_line_count = 0
-                lines.append(line)
-                
-    except KeyboardInterrupt:
-        raise Exception("Input cancelled by user")
-    
-    return '\n'.join(lines)
 
 
 def display_results(console: Console, result: CleaningResult) -> None:
@@ -240,6 +211,7 @@ def display_results(console: Console, result: CleaningResult) -> None:
     table.add_row("[green]Reduction:[/green]", f"{result.size_reduction:,} chars ({result.reduction_percent:.1f}%)")
     table.add_row("[green]Scripts/Styles:[/green]", f"{result.script_style_removed} removed")
     table.add_row("[green]Attributes:[/green]", f"{result.attributes_removed} removed")
+    table.add_row("[green]&nbsp; Entities:[/green]", f"{result.entities_removed} removed")
     
     console.print(Panel(
         table,
@@ -248,57 +220,52 @@ def display_results(console: Console, result: CleaningResult) -> None:
     ))
 
 
-def main() -> None:
-    """Main entry point - interactive CLI waiting for user input."""
+def run_garbage_cleaner() -> str:
+    """Run the garbage cleaner interactively. Returns cleaned HTML."""
     console = Console()
     
-    # Display startup header
-    title_text = Text("HTML CLEANER", style="bold green")
+    # Display header
+    title_text = Text("HTML GARBAGE CLEANER", style="bold green")
     console.print(Panel(title_text, border_style="green"))
     
+    # Read HTML from stdin
+    console.print("[green bold]→ Paste your HTML (press Enter twice when done):[/green bold]")
+    
+    lines = []
+    blank_line_count = 0
+    
     try:
-        while True:
-            # Wait for user to paste HTML
-            try:
-                html_content = read_html_from_user()
-            except Exception as e:
-                if "cancelled" in str(e).lower():
-                    console.print("\n[green bold]✓ Exiting HTML Cleaner[/green bold]")
-                    sys.exit(0)
-                console.print(f"[red]✗ Error reading input: {e}[/red]")
-                continue
+        for line in sys.stdin:
+            line = line.rstrip('\n\r')
             
-            # Check if we got valid HTML
-            if not html_content.strip():
-                # EOF reached, exit gracefully
-                console.print("\n[green bold]✓ Exiting HTML Cleaner[/green bold]")
-                sys.exit(0)
-            
-            if '<' not in html_content or '>' not in html_content:
-                console.print("[yellow]⚠ No HTML detected. Make sure you paste valid HTML.\n[/yellow]")
-                continue
-            
-            # Clean the HTML
-            try:
-                result = clean_html(html_content)
-                
-                # Update clipboard with cleaned HTML
-                success = set_clipboard(result.cleaned_html)
-                
-                if success:
-                    # Display results
-                    display_results(console, result)
-                    console.print("[green bold]✓ Copied to clipboard![/green bold]\n")
-                else:
-                    console.print("[yellow]⚠ Warning: Could not update clipboard[/yellow]\n")
-                    
-            except Exception as e:
-                console.print(f"[red]✗ Error cleaning HTML: {e}[/red]\n")
+            if line.strip() == "":
+                blank_line_count += 1
+                if lines and blank_line_count >= 1:
+                    break
+            else:
+                blank_line_count = 0
+                lines.append(line)
                 
     except KeyboardInterrupt:
-        console.print("\n[green bold]✓ Exiting HTML Cleaner[/green bold]")
-        sys.exit(0)
-
-
-if __name__ == '__main__':
-    main()
+        raise Exception("Input cancelled by user")
+    
+    html_content = '\n'.join(lines)
+    
+    # Validate input
+    if not html_content.strip():
+        console.print("[red]✗ No HTML input provided[/red]")
+        return ""
+    
+    if '<' not in html_content or '>' not in html_content:
+        console.print("[yellow]⚠ No HTML detected[/yellow]")
+        return ""
+    
+    # Clean HTML
+    try:
+        result = clean_html(html_content)
+        display_results(console, result)
+        console.print("[green bold]✓ Copied to clipboard![/green bold]\n")
+        return result.cleaned_html
+    except Exception as e:
+        console.print(f"[red]✗ Error cleaning HTML: {e}[/red]")
+        return ""
