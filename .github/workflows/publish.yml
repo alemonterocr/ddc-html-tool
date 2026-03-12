@@ -26,11 +26,28 @@ jobs:
       - name: Build executable
         run: |
           pyinstaller html-cleaner.spec
+          if not exist "dist\html-cleaner\html-cleaner.exe" exit /b 1
           powershell -Command "Compress-Archive -Path 'dist\html-cleaner' -DestinationPath 'html-cleaner-win64.zip' -Force"
+        shell: cmd
+
+      - name: Check build artifacts
+        run: |
+          echo "Checking for build artifacts..."
+          if (Test-Path "dist/html-cleaner/html-cleaner.exe") {
+            echo "✓ Executable found"
+          } else {
+            echo "✗ Executable NOT found"
+            exit 1
+          }
+          if (Test-Path "html-cleaner-win64.zip") {
+            echo "✓ ZIP archive found"
+          } else {
+            echo "✗ ZIP archive NOT found"
+            exit 1
+          }
         shell: powershell
 
       - name: Upload artifacts to release
-        run: |
-          gh release upload ${{ github.event.release.tag_name }} dist/html-cleaner/html-cleaner.exe html-cleaner-win64.zip
+        run: gh release upload ${{ github.event.release.tag_name }} dist/html-cleaner/html-cleaner.exe html-cleaner-win64.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -25,11 +25,12 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -e .
-          pip install pytest pytest-cov
+          pip install rich beautifulsoup4 pytest pytest-cov
 
       - name: Run validation tests
         run: python tests/validate.py
+        env:
+          PYTHONPATH: ${{ github.workspace }}
 
       - name: Run comprehensive tests
         run: |
@@ -37,3 +38,5 @@ jobs:
           python tests/test_space_preservation.py
           python tests/test_entity_fix.py
           python tests/test_nbsp_removal.py
+        env:
+          PYTHONPATH: ${{ github.workspace }}
