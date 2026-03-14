@@ -14,8 +14,18 @@ from rich.panel import Panel
 from rich.text import Text
 from rich.prompt import Prompt
 
+import os
+
 # Import modules from the modules folder
-sys.path.insert(0, 'modules')
+if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
+    # Running as PyInstaller bundle
+    modules_path = os.path.join(sys._MEIPASS, 'modules')
+else:
+    # Running in normal Python environment
+    modules_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'modules')
+
+sys.path.insert(0, modules_path)
+
 from garbage_cleaner import run_garbage_cleaner
 from space_cleaner import run_space_cleaner
 from href_analyzer import run_href_analyzer
